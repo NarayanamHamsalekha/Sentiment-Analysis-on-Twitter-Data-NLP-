@@ -1,8 +1,8 @@
-streamlit==1.51.0
-pandas==2.3.3
-numpy==2.3.5
-scikit-learn==1.7.2
-tensorflow==2.21.0
-joblib==1.5.2
-seaborn==0.13.2
-plotly==5.15.0
+streamlit
+pandas
+numpy
+scikit-learn
+tensorflow
+joblib
+seaborn
+plotly
