@@ -24,7 +24,7 @@ dist_fig = px.bar(
 )
 
 # Trend Line Data (Last 24 Hours)
-times = pd.date_range(start='2024-01-01', periods=24, freq='H')
+times = pd.date_range(start='2024-01-01', periods=24, freq='h')
 trend_fig = px.line(
     x=times, 
     y=np.random.randint(50, 200, 24), 
