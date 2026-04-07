@@ -1,6 +1,7 @@
 dash
 pandas
-numpy
 scikit-learn
 joblib
+tensorflow-cpu
 gunicorn
+numpy
