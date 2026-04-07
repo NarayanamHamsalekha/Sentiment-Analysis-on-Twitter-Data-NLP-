@@ -4,12 +4,11 @@ import pandas as pd
 import numpy as np
 import joblib
 import altair as alt
-from keras.preprocessing.sequence import pad_sequences
-from keras.models import load_model
+import re
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 
 # -----------------------
-# Load Models & Tokenizers
+# Load Models
 # -----------------------
 st.sidebar.title("Model Loading Status")
 
@@ -17,32 +16,22 @@ try:
     lr_model = joblib.load('logistic_model.pkl')
     st.sidebar.success("✅ Logistic Regression Loaded")
 except:
+    lr_model = None
     st.sidebar.warning("⚠️ Logistic Regression Not Found")
 
 try:
-    nb_model = joblib.load('naive_bayes_model.pkl')  # make sure filename matches
+    nb_model = joblib.load('naive_bayes_model.pkl')
     st.sidebar.success("✅ Naive Bayes Loaded")
 except:
+    nb_model = None
     st.sidebar.warning("⚠️ Naive Bayes Not Found")
 
 try:
     tfidf = joblib.load('tfidf_vectorizer.pkl')
     st.sidebar.success("✅ TF-IDF Vectorizer Loaded")
 except:
+    tfidf = None
     st.sidebar.warning("⚠️ TF-IDF Vectorizer Not Found")
-
-try:
-    lstm_model = load_model('lstm_model.keras')
-    st.sidebar.success("✅ LSTM Model Loaded")
-except:
-    st.sidebar.warning("⚠️ LSTM Model Not Found")
-
-try:
-    tokenizer = joblib.load('tokenizer.pkl')
-    st.sidebar.success("✅ Tokenizer Loaded")
-except:
-    tokenizer = None
-    st.sidebar.warning("⚠️ Tokenizer Not Found")
 
 try:
     le = joblib.load('label_encoder.pkl')
@@ -53,104 +42,80 @@ except:
 
 try:
     df = pd.read_csv('cleaned_tweets.csv')
+    df['text'] = df['text'].fillna("")
     st.sidebar.success("✅ Dataset Loaded")
 except:
     df = pd.DataFrame(columns=['text', 'sentiment'])
     st.sidebar.warning("⚠️ Dataset Not Found")
 
 # -----------------------
-# Streamlit Layout
+# UI
 # -----------------------
 st.title("🚀 BrandPulse AI - Twitter Sentiment Dashboard")
 st.markdown("### Analyze Twitter Sentiments in Real-Time")
 st.write("---")
 
-import re
-
 # -----------------------
-# Text Cleaning Function
+# Text Cleaning
 # -----------------------
 def clean_text(text):
     text = text.lower()
-    text = re.sub(r"http\S+", "", text)   # remove URLs
-    text = re.sub(r"@\w+", "", text)      # remove mentions
-    text = re.sub(r"#\w+", "", text)      # remove hashtags
-    text = re.sub(r"[^a-z\s]", "", text)  # remove special characters
-    text = re.sub(r"\s+", " ", text).strip()
-    return text
+    text = re.sub(r"http\S+", "", text)
+    text = re.sub(r"@\w+", "", text)
+    text = re.sub(r"#\w+", "", text)
+    text = re.sub(r"[^a-z\s]", "", text)
+    return text.strip()
 
 # -----------------------
-# Custom Tweet Input
+# Prediction
 # -----------------------
 st.header("💬 Custom Tweet Sentiment Prediction")
 user_input = st.text_area("Enter a Tweet:")
 
 if st.button("Predict Sentiment"):
-    if user_input:
-        
+    if user_input and tfidf and lr_model and nb_model:
         cleaned_input = clean_text(user_input)
-        
-        # Classical Predictions
-        vec_input = tfidf.transform([user_input]) if tfidf else None
-        lr_pred = lr_model.predict(vec_input)[0] if lr_model else "N/A"
-        nb_pred = nb_model.predict(vec_input)[0] if nb_model else "N/A"
+        vec_input = tfidf.transform([cleaned_input])
 
-        # LSTM Prediction
-        if lstm_model and tokenizer and le:
-            seq = tokenizer.texts_to_sequences([user_input])
-            pad_seq = pad_sequences(seq, maxlen=100)
-            lstm_pred_class = np.argmax(lstm_model.predict(pad_seq), axis=1)
-            lstm_pred_label = le.inverse_transform(lstm_pred_class)[0]
-        else:
-            lstm_pred_label = "N/A"
+        lr_pred = lr_model.predict(vec_input)[0]
+        nb_pred = nb_model.predict(vec_input)[0]
 
-        st.success(f"✅ Final Prediction (LSTM): {lstm_pred_label}")
-        st.markdown(f"**Naive Bayes Prediction:** {nb_pred}")
-        st.markdown(f"**LSTM Prediction:** {lstm_pred_label}")
+        st.success(f"🎯 Logistic Regression: {lr_pred}")
+        st.success(f"🎯 Naive Bayes: {nb_pred}")
     else:
-        st.warning("Please enter a tweet!")
+        st.warning("Please enter tweet or models not loaded")
 
 st.write("---")
 
 # -----------------------
-# Live Tweet Stream
+# Live Tweets
 # -----------------------
 st.header("📢 Live Tweet Stream (Simulation)")
 if not df.empty:
-    sample_tweets = df.sample(5)['text']
-    for i, tweet in enumerate(sample_tweets, start=1):
+    for i, tweet in enumerate(df.sample(5)['text'], start=1):
         st.write(f"{i}. {tweet}")
-else:
-    st.info("No tweets to display.")
 
 st.write("---")
 
 # -----------------------
 # Sentiment Distribution
 # -----------------------
-st.header("📊 Sentiment Distribution (LSTM Predictions)")
-if lstm_model and tokenizer and le and not df.empty:
-    # handle missing text data
-    df['text'] = df['text'].fillna("")
-    X_seq = tokenizer.texts_to_sequences(df['text'])
-    X_pad = pad_sequences(X_seq, maxlen=100)
-    y_pred_all = np.argmax(lstm_model.predict(X_pad), axis=1)
-    counts = pd.Series(y_pred_all).value_counts().sort_index()
-    labels = le.inverse_transform([0,1,2])
-    dist_df = pd.DataFrame({"Sentiment": labels, "Count": counts.values})
-    st.bar_chart(dist_df.set_index('Sentiment'))
+st.header("📊 Sentiment Distribution")
+if not df.empty and le:
+    counts = df['sentiment'].value_counts()
+    st.bar_chart(counts)
 else:
-    st.info("Sentiment distribution cannot be displayed.")
+    st.info("No data available")
 
 st.write("---")
 
 # -----------------------
-# Trend Line / Time-Series
+# Trend Line
 # -----------------------
-st.header("📈 Sentiment Trend Over Last 24 Hours (Simulation)")
+st.header("📈 Sentiment Trend (24 Hours)")
 timestamps = pd.date_range(end=pd.Timestamp.now(), periods=24, freq='H')
-sentiment_counts = np.random.randint(0, 50, size=(24, 3))
-trend_df = pd.DataFrame(sentiment_counts, columns=labels if le else ["neg","neu","pos"], index=timestamps)
+trend_data = np.random.randint(0, 50, size=(24, 3))
+trend_df = pd.DataFrame(trend_data, columns=['negative','neutral','positive'], index=timestamps)
 st.line_chart(trend_df)
 
 st.write("---")
@@ -158,73 +123,63 @@ st.write("---")
 # -----------------------
 # Performance Metrics
 # -----------------------
-st.header("📑 Performance Comparison Table")
-if le and not df.empty and lr_model and nb_model:
+st.header("📑 Performance Comparison")
+
+if not df.empty and le and tfidf and lr_model and nb_model:
     y_true = le.transform(df['sentiment'])
-    y_pred_lr_all = le.transform(lr_model.predict(tfidf.transform(df['text'])))
-    y_pred_nb_all = le.transform(nb_model.predict(tfidf.transform(df['text'])))
-    y_pred_lstm_all = np.argmax(lstm_model.predict(X_pad), axis=1)  # already numeric
-    y_pred_lstm_all = np.argmax(lstm_model.predict(X_pad), axis=1) if lstm_model and tokenizer else np.zeros(len(df))
-    
+
+    y_pred_lr = le.transform(lr_model.predict(tfidf.transform(df['text'])))
+    y_pred_nb = le.transform(nb_model.predict(tfidf.transform(df['text'])))
+
     comparison = pd.DataFrame({
-        'Model': ['Logistic Regression', 'Naive Bayes', 'LSTM'],
+        'Model': ['Logistic Regression', 'Naive Bayes'],
         'Accuracy': [
-            accuracy_score(y_true, y_pred_lr_all),
-            accuracy_score(y_true, y_pred_nb_all),
-            accuracy_score(y_true, y_pred_lstm_all)
+            accuracy_score(y_true, y_pred_lr),
+            accuracy_score(y_true, y_pred_nb)
         ],
         'Precision': [
-            precision_score(y_true, y_pred_lr_all, average='weighted'),
-            precision_score(y_true, y_pred_nb_all, average='weighted'),
-            precision_score(y_true, y_pred_lstm_all, average='weighted')
+            precision_score(y_true, y_pred_lr, average='weighted'),
+            precision_score(y_true, y_pred_nb, average='weighted')
         ],
         'Recall': [
-            recall_score(y_true, y_pred_lr_all, average='weighted'),
-            recall_score(y_true, y_pred_nb_all, average='weighted'),
-            recall_score(y_true, y_pred_lstm_all, average='weighted')
+            recall_score(y_true, y_pred_lr, average='weighted'),
+            recall_score(y_true, y_pred_nb, average='weighted')
         ],
         'F1-Score': [
-            f1_score(y_true, y_pred_lr_all, average='weighted'),
-            f1_score(y_true, y_pred_nb_all, average='weighted'),
-            f1_score(y_true, y_pred_lstm_all, average='weighted')
+            f1_score(y_true, y_pred_lr, average='weighted'),
+            f1_score(y_true, y_pred_nb, average='weighted')
         ]
     })
+
     st.dataframe(comparison)
-else:
-    st.info("Performance metrics cannot be displayed.")
 
 st.write("---")
 
 # -----------------------
-# Confusion Matrices
+# Confusion Matrix
 # -----------------------
-st.markdown("## Confusion Matrices (String Labels)")
-
-y_true_labels = le.inverse_transform(y_true)
-y_pred_lr_labels = le.inverse_transform(y_pred_lr_all)
-y_pred_nb_labels = le.inverse_transform(y_pred_nb_all)
-y_pred_lstm_labels = le.inverse_transform(y_pred_lstm_all)
+st.header("📊 Confusion Matrices")
 
 labels = ['negative', 'neutral', 'positive']
 
-def plot_confusion_matrix_altair(y_true, y_pred, model_name):
+def plot_cm(y_true, y_pred, title):
     cm = confusion_matrix(y_true, y_pred, labels=labels)
     cm_df = pd.DataFrame(cm, index=labels, columns=labels).reset_index().melt(id_vars='index')
     cm_df.columns = ['Actual', 'Predicted', 'Count']
-    
+
     chart = alt.Chart(cm_df).mark_rect().encode(
         x='Predicted:N',
         y='Actual:N',
         color='Count:Q',
         tooltip=['Actual', 'Predicted', 'Count']
-    ).properties(
-        width=400,
-        height=300,
-        title=f"{model_name} Confusion Matrix"
-    )
-    
+    ).properties(title=title)
+
     st.altair_chart(chart)
 
-plot_confusion_matrix_altair(y_true_labels, y_pred_lr_labels, "Logistic Regression")
-plot_confusion_matrix_altair(y_true_labels, y_pred_nb_labels, "Naive Bayes")
-plot_confusion_matrix_altair(y_true_labels, y_pred_lstm_labels, "LSTM")
+if not df.empty and le:
+    y_true_labels = df['sentiment']
+    y_pred_lr_labels = lr_model.predict(tfidf.transform(df['text']))
+    y_pred_nb_labels = nb_model.predict(tfidf.transform(df['text']))
+
+    plot_cm(y_true_labels, y_pred_lr_labels, "Logistic Regression")
+    plot_cm(y_true_labels, y_pred_nb_labels, "Naive Bayes")
