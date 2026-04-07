@@ -4,8 +4,8 @@ from dash import html, dcc, Input, Output, State
 import pandas as pd
 import numpy as np
 import joblib
-from keras.preprocessing.sequence import pad_sequences
-from keras.models import load_model
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.models import load_model
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 import plotly.express as px
 import plotly.figure_factory as ff
