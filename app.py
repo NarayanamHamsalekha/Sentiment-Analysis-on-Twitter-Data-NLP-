@@ -4,8 +4,6 @@ import pandas as pd
 import numpy as np
 import joblib
 import altair as alt
-from keras.preprocessing.sequence import pad_sequences
-from keras.models import load_model
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 
 # -----------------------
@@ -30,12 +28,6 @@ try:
     st.sidebar.success("✅ TF-IDF Vectorizer Loaded")
 except:
     st.sidebar.warning("⚠️ TF-IDF Vectorizer Not Found")
-
-try:
-    lstm_model = load_model('lstm_model.keras')
-    st.sidebar.success("✅ LSTM Model Loaded")
-except:
-    st.sidebar.warning("⚠️ LSTM Model Not Found")
 
 try:
     tokenizer = joblib.load('tokenizer.pkl')
@@ -132,8 +124,6 @@ st.header("📊 Sentiment Distribution (LSTM Predictions)")
 if lstm_model and tokenizer and le and not df.empty:
     # handle missing text data
     df['text'] = df['text'].fillna("")
-    X_seq = tokenizer.texts_to_sequences(df['text'])
-    X_pad = pad_sequences(X_seq, maxlen=100)
     y_pred_all = np.argmax(lstm_model.predict(X_pad), axis=1)
     counts = pd.Series(y_pred_all).value_counts().sort_index()
     labels = le.inverse_transform([0,1,2])
