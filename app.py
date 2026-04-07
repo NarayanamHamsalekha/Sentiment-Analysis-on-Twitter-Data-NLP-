@@ -113,7 +113,7 @@ st.write("---")
 # Trend Line
 # -----------------------
 st.header("📈 Sentiment Trend (24 Hours)")
-timestamps = pd.date_range(end=pd.Timestamp.now(), periods=24, freq='H')
+timestamps = pd.date_range(end=pd.Timestamp.now(), periods=24, freq='h')
 trend_data = np.random.randint(0, 50, size=(24, 3))
 trend_df = pd.DataFrame(trend_data, columns=['negative','neutral','positive'], index=timestamps)
 st.line_chart(trend_df)
