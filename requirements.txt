@@ -1,6 +1,6 @@
-streamlit
+dash
 pandas
 numpy
 scikit-learn
 joblib
-altair
+gunicorn
