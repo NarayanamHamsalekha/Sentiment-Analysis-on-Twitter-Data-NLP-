@@ -1,15 +1,18 @@
-# app.py
-import dash
-from dash import html, dcc, Input, Output, State
-import pandas as pd
-import numpy as np
-import joblib
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
-import plotly.express as px
-import plotly.figure_factory as ff
-import re
-from datetime import datetime, timedelta
 import os
+import dash
+from dash import html, dcc
+import pandas as pd
+import plotly.express as px
+
+# Create Dash app
+app = dash.Dash(__name__)
+server = app.server  # Expose the Flask server
+
+# Your layout here
+app.layout = html.Div([
+    html.H1("Sentiment Analysis Dashboard"),
+    # Add your graphs, charts, etc.
+])
 
 # -----------------------
 # Load Models & Data
