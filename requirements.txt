@@ -1,7 +1,10 @@
 dash
 pandas
+numpy
 scikit-learn
 joblib
-gunicorn
-numpy
+tensorflow
 plotly
+gunicorn
+
+
