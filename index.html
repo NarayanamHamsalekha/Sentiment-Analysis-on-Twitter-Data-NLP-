@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BrandPulse AI | Twitter Sentiment</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo-area">
+            <h2>🚀 BrandPulse AI</h2>
+            <p>NLP Sentiment Engine v2.0</p>
+        </div>
+
+        <div class="menu-section">
+            <p class="label">MODEL STATUS</p>
+            <div class="status-item"><span>✅</span> Logistic Regression</div>
+            <div class="status-item"><span>✅</span> Naive Bayes</div>
+            <div class="status-item"><span>✅</span> LSTM (Deep Learning)</div>
+            <div class="status-item"><span>✅</span> TF-IDF Vectorizer</div>
+        </div>
+
+        <div class="menu-section">
+            <p class="label">LIVE STREAM SIMULATION</p>
+            <div id="live-tweet-feed">
+                </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>Sentiment Analysis Dashboard</h1>
+            <p>Analyzing Twitter data using Classical ML and Deep Learning architectures.</p>
+        </header>
+
+        <div class="card">
+            <h3>💬 Custom Tweet Prediction</h3>
+            <div id="input-area">
+                </div>
+            <div id="prediction-result"></div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3>📊 Sentiment Distribution</h3>
+                <div id="dist-plot"></div>
+            </div>
+            <div class="card">
+                <h3>📈 Sentiment Trend (24h)</h3>
+                <div id="trend-plot"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>📑 Performance Metrics</h3>
+            <div id="metrics-table-output"></div>
+        </div>
+
+        <div class="card">
+            <h3>🧾 Confusion Matrices</h3>
+            <div class="cm-grid">
+                <div id="cm-lr"></div>
+                <div id="cm-nb"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
