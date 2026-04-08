@@ -7,8 +7,8 @@ import numpy as np
 import joblib
 import re
 import tensorflow as tf
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.models import load_model
+# from tensorflow.keras.preprocessing.sequence import pad_sequences
+# from tensorflow.keras.models import load_model
 
 # Initialize Dash
 app = dash.Dash(__name__)
@@ -23,7 +23,7 @@ try:
     tfidf = joblib.load('tfidf_vectorizer.pkl')
     
     # Deep Learning Models
-    lstm_model = load_model('lstm_model.keras')
+    # lstm_model = load_model('lstm_model.keras')
     tokenizer = joblib.load('tokenizer.pkl')
     le = joblib.load('label_encoder.pkl')
     
